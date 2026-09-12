@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import { setTimeout as sleep } from "node:timers/promises";
 import { ProtectClient } from "unifi-protect";
 
@@ -7,6 +7,7 @@ const credentialsPath = "/config/ufp.json";
 const cameraName = process.env.PROTECT_CAMERA;
 const monitor = process.env.TALKBACK_OUTPUT_MONITOR ?? "lva_out.monitor";
 const pulseServer = process.env.PULSE_SERVER ?? "unix:/run/pulse/native";
+const readinessPath = "/tmp/talkback-ready";
 const shutdown = new AbortController();
 
 async function* adtsFrames(source) {
@@ -76,6 +77,7 @@ while (!shutdown.signal.aborted) {
   let ffmpeg;
 
   try {
+    await rm(readinessPath, { force: true });
     await using client = await ProtectClient.connect({
       host: controller,
       username: credentials.username,
@@ -161,6 +163,7 @@ while (!shutdown.signal.aborted) {
     parec.stdout.pipe(ffmpeg.stdin);
 
     await using session = await camera.talkback({ signal: shutdown.signal });
+    await writeFile(readinessPath, "");
     await session.send(adtsFrames(ffmpeg.stdout), { signal: shutdown.signal });
   } catch (error) {
     if (!shutdown.signal.aborted) {
@@ -169,6 +172,7 @@ while (!shutdown.signal.aborted) {
       );
     }
   } finally {
+    await rm(readinessPath, { force: true });
     parec?.kill("SIGTERM");
     ffmpeg?.kill("SIGTERM");
   }

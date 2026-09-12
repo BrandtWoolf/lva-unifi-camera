@@ -43,7 +43,7 @@ echo "[audio-bridge] PulseAudio ready; virtual mic 'camera_mic' available."
 
 # Feed the pipe source from the camera. Reconnect forever if the stream drops.
 while true; do
-    echo "[audio-bridge] connecting to ${RTSP_URL}"
+    echo "[audio-bridge] connecting to configured RTSP(S) stream"
     ffmpeg -hide_banner -loglevel warning -nostdin -y \
         -rtsp_transport tcp -fflags nobuffer -flags low_delay \
         -i "${RTSP_URL}" \

@@ -1,5 +1,5 @@
 {
-  "controller": "192.168.1.1",
+  "controller": "REPLACE_WITH_PROTECT_CONTROLLER_IP_OR_HOSTNAME",
   "username": "REPLACE_WITH_LOCAL_PROTECT_USERNAME",
   "password": "REPLACE_WITH_LOCAL_PROTECT_PASSWORD",
   "verifyTls": false
