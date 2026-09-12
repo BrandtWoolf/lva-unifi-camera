@@ -9,6 +9,12 @@ services:
     env_file: .env
     volumes:
       - pulse:/run/pulse
+    healthcheck:
+      test: ["CMD-SHELL", "PULSE_SERVER=unix:/run/pulse/native pactl list sources short | awk '{print $$2}' | grep -qx camera_mic"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
 
   # One-shot: fix ownership of the LVA data volumes.
   fix-permissions:
@@ -28,8 +34,10 @@ services:
     container_name: linux-voice-assistant
     image: "${LVA_IMAGE:-ghcr.io/ohf-voice/linux-voice-assistant}:${LVA_IMAGE_TAG:-latest}"
     restart: unless-stopped
-    network_mode: "host"
     user: "${LVA_USER_ID:-1000}:${LVA_USER_GROUP:-1000}"
+    ports:
+      - "${LVA_PORT:-6053}:6053"
+      - "${LVA_PERIPHERAL_PORT:-6055}:6055"
     environment:
       - XDG_RUNTIME_DIR=${LVA_XDG_RUNTIME_DIR:-/run/pulse}
       - PULSE_SERVER=${LVA_PULSE_SERVER:-unix:/run/pulse/native}
@@ -45,14 +53,33 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - pulse:/run/pulse
     depends_on:
-      - fix-permissions
-      - audio-bridge
+      fix-permissions:
+        condition: service_completed_successfully
+      audio-bridge:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "pgrep", "-f", "linux_voice_assistant"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 90s
+
+  # Captures LVA's PulseAudio output and sends AAC talkback audio to the camera
+  # through the authenticated UniFi Protect WebSocket API.
+  speaker-bridge:
+    profiles: ["speaker"]
+    build: ./speaker-bridge
+    container_name: lva-speaker-bridge
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - PULSE_SERVER=${LVA_PULSE_SERVER:-unix:/run/pulse/native}
+    volumes:
+      - pulse:/run/pulse
+      - ./ufp.json:/config/ufp.json:ro
+    depends_on:
+      audio-bridge:
+        condition: service_healthy
 
 volumes:
   wakeword_data:
