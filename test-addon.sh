@@ -12,6 +12,7 @@ PERIPHERAL_PORT="${ADDON_PERIPHERAL_PORT:-16055}"
 MODE="${1:---smoke}"
 DATA_DIR=
 CONTAINER_ID=
+FIRST_DEVICE_NAME=
 
 usage() {
     cat <<'EOF'
@@ -98,14 +99,55 @@ EOF
                     printf 'Add-on exposed a configured secret in its log.\n' >&2
                     exit 1
                 fi
-                printf 'Local add-on smoke test passed.\n'
+                FIRST_DEVICE_NAME="$(
+                    sed -nE 's/^Device name: (lva-[[:xdigit:]]+)$/\1/p' <<<"$LOGS" |
+                        tail -1
+                )"
+                [[ -n "$FIRST_DEVICE_NAME" ]] || {
+                    docker logs "$CONTAINER_ID" >&2
+                    printf 'Unable to determine the initial ESPHome device name.\n' >&2
+                    exit 1
+                }
+                break
+            fi
+            sleep 1
+        done
+
+        [[ -n "$FIRST_DEVICE_NAME" ]] || {
+            docker logs "$CONTAINER_ID" >&2
+            printf 'Timed out waiting for add-on startup.\n' >&2
+            exit 1
+        }
+
+        docker rm -f "$CONTAINER_ID" >/dev/null
+        CONTAINER_ID="$(docker run -d -v "$DATA_DIR:/data" "$IMAGE")"
+        for _ in $(seq 1 30); do
+            if ! docker inspect --format '{{.State.Running}}' "$CONTAINER_ID" |
+                grep -qx true; then
+                docker logs "$CONTAINER_ID" >&2
+                printf 'Add-on exited during restart.\n' >&2
+                exit 1
+            fi
+
+            LOGS="$(docker logs "$CONTAINER_ID" 2>&1)"
+            SECOND_DEVICE_NAME="$(
+                sed -nE 's/^Device name: (lva-[[:xdigit:]]+)$/\1/p' <<<"$LOGS" |
+                    tail -1
+            )"
+            if [[ -n "$SECOND_DEVICE_NAME" ]]; then
+                [[ "$SECOND_DEVICE_NAME" == "$FIRST_DEVICE_NAME" ]] || {
+                    printf 'ESPHome device identity changed after restart: %s -> %s\n' \
+                        "$FIRST_DEVICE_NAME" "$SECOND_DEVICE_NAME" >&2
+                    exit 1
+                }
+                printf 'Local add-on smoke and restart tests passed.\n'
                 exit 0
             fi
             sleep 1
         done
 
         docker logs "$CONTAINER_ID" >&2
-        printf 'Timed out waiting for add-on startup.\n' >&2
+        printf 'Timed out waiting for the restarted add-on.\n' >&2
         exit 1
         ;;
     --run)

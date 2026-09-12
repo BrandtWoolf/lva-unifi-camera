@@ -21,6 +21,15 @@ In UniFi Protect:
 The broad permission is currently required by Protect's talkback API. Use a
 unique password and do not reuse an administrator's credentials.
 
+## Known supported devices
+
+| Device | Microphone | Speaker talkback | Status |
+|---|---|---|---|
+| UniFi Protect G4 Instant | Yes | Yes | Tested and supported |
+
+Other UniFi Protect cameras are currently unverified. Compatible cameras must
+provide an audio-enabled RTSP(S) stream and speaker talkback through Protect.
+
 ## Configuration
 
 Configure all required values before starting:
@@ -37,6 +46,8 @@ Configure all required values before starting:
 
 Configuration and downloaded LVA state are stored in the add-on's private
 `/data` directory and are included in Home Assistant backups.
+The ESPHome device identity is also persisted there, so restarting or updating
+the add-on does not cause a MAC-address mismatch in Home Assistant.
 
 ## Add the satellite to Home Assistant
 

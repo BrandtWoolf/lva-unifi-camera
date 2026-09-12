@@ -109,6 +109,16 @@ It was built around a G4 Instant. Other Protect cameras should work when they
 provide the same RTSP audio and Protect talkback capabilities, but are not all
 tested.
 
+## Known supported devices
+
+| Device | Microphone | Speaker talkback | Status |
+|---|---|---|---|
+| UniFi Protect G4 Instant | Yes | Yes | Tested and supported |
+
+Other UniFi Protect cameras are currently unverified. A camera must provide an
+audio-enabled RTSP(S) stream and report speaker talkback support through the
+Protect API to be compatible.
+
 ## Prerequisites
 
 - For the add-on: Home Assistant OS with access to the custom app repository
