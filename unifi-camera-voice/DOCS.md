@@ -4,6 +4,10 @@ This add-on turns a supported UniFi Protect camera into a Home Assistant Assist
 satellite. It runs the RTSP microphone bridge, Linux Voice Assistant, and the
 Protect speaker bridge together inside Home Assistant OS.
 
+It is based on
+[OHF-Voice/linux-voice-assistant](https://github.com/OHF-Voice/linux-voice-assistant),
+which provides the Linux Voice Assistant runtime.
+
 ## Before installing
 
 In UniFi Protect:

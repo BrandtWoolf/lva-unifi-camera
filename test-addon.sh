@@ -3,6 +3,10 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 IMAGE="${ADDON_TEST_IMAGE:-lva-unifi-camera-addon:test}"
+APP_VERSION="$(
+    sed -nE 's/^version: *"?([^"]+)"?$/\1/p' \
+        "$ROOT_DIR/unifi-camera-voice/config.yaml"
+)"
 ESPHOME_PORT="${ADDON_ESPHOME_PORT:-16053}"
 PERIPHERAL_PORT="${ADDON_PERIPHERAL_PORT:-16055}"
 MODE="${1:---smoke}"
@@ -47,7 +51,7 @@ build_image() {
     printf 'Building %s for %s...\n' "$IMAGE" "$BUILD_ARCH"
     docker build \
         --build-arg "BUILD_ARCH=${BUILD_ARCH}" \
-        --build-arg "BUILD_VERSION=0.1.0-local" \
+        --build-arg "BUILD_VERSION=${APP_VERSION}-local" \
         --tag "$IMAGE" \
         "$ROOT_DIR/unifi-camera-voice"
 }

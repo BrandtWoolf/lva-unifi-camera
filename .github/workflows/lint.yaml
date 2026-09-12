@@ -18,6 +18,13 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check app version increment
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python3 scripts/check-addon-version.py "$BASE_SHA"
 
       - name: Lint app configuration
         uses: frenck/action-addon-linter@v2.21
