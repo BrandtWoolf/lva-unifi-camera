@@ -1,0 +1,5 @@
+# Local environment file (copy from .env.example and fill in your camera URL)
+.env
+
+# macOS
+.DS_Store

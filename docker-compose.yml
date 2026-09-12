@@ -1,0 +1,62 @@
+---
+services:
+  # PulseAudio + ffmpeg: turns the UniFi camera's RTSP audio into a virtual
+  # microphone ("camera_mic") exposed on a shared PulseAudio socket.
+  audio-bridge:
+    build: ./audio-bridge
+    container_name: lva-audio-bridge
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - pulse:/run/pulse
+
+  # One-shot: fix ownership of the LVA data volumes.
+  fix-permissions:
+    image: "${LVA_IMAGE:-ghcr.io/ohf-voice/linux-voice-assistant}:${LVA_IMAGE_TAG:-latest}"
+    entrypoint: []
+    command: "chown -R ${LVA_USER_ID:-1000}:${LVA_USER_GROUP:-1000} /app/local /app/configuration /app/wakewords/custom /app/sounds/custom"
+    env_file: .env
+    volumes:
+      - wakeword_data:/app/local
+      - wakeword_custom:/app/wakewords/custom
+      - configuration:/app/configuration
+      - sounds_custom:/app/sounds/custom
+    restart: "no"
+
+  # The voice assistant itself. Talks to Home Assistant over the ESPHome API.
+  linux-voice-assistant:
+    container_name: linux-voice-assistant
+    image: "${LVA_IMAGE:-ghcr.io/ohf-voice/linux-voice-assistant}:${LVA_IMAGE_TAG:-latest}"
+    restart: unless-stopped
+    network_mode: "host"
+    user: "${LVA_USER_ID:-1000}:${LVA_USER_GROUP:-1000}"
+    environment:
+      - XDG_RUNTIME_DIR=${LVA_XDG_RUNTIME_DIR:-/run/pulse}
+      - PULSE_SERVER=${LVA_PULSE_SERVER:-unix:/run/pulse/native}
+      - PULSE_COOKIE=${LVA_PULSE_COOKIE:-DISABLED}
+    env_file: .env
+    cap_add:
+      - SYS_NICE
+    volumes:
+      - wakeword_data:/app/local
+      - wakeword_custom:/app/wakewords/custom
+      - configuration:/app/configuration
+      - sounds_custom:/app/sounds/custom
+      - /etc/localtime:/etc/localtime:ro
+      - pulse:/run/pulse
+    depends_on:
+      - fix-permissions
+      - audio-bridge
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "linux_voice_assistant"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+
+volumes:
+  wakeword_data:
+  wakeword_custom:
+  configuration:
+  sounds_custom:
+  pulse:
