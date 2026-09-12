@@ -4,6 +4,11 @@ Turn a supported UniFi Protect camera into a full Home Assistant Assist
 satellite: camera microphone in, wake-word/Assist processing through Linux Voice
 Assistant (LVA), and spoken responses back through the camera speaker.
 
+This project is based on
+[OHF-Voice/linux-voice-assistant](https://github.com/OHF-Voice/linux-voice-assistant),
+which provides the Linux Voice Assistant runtime used to expose the camera as a
+Home Assistant Assist satellite.
+
 ## Home Assistant OS add-on
 
 The repository can be installed directly as a custom Home Assistant app
@@ -177,9 +182,11 @@ peripheral API; most Home Assistant setups only need `6053`.
 
 ### Optional status-light automation
 
-Home Assistant's Assist Satellite triggers can turn a nearby light on while the
-satellite listens and off when the interaction returns to idle. Replace the
-entity IDs below:
+Home Assistant's Assist Satellite triggers can turn the camera's status light
+on while the satellite listens and off when the interaction returns to idle.
+Use the status-light switch that the **UniFi Protect** integration adds to the
+camera's device in Home Assistant. Replace both entity IDs below with your
+Assist satellite and camera status-light switch entities:
 
 ```yaml
 alias: UniFi camera satellite status light
@@ -197,20 +204,19 @@ actions:
   - choose:
       - conditions: "{{ trigger.id == 'listening' }}"
         sequence:
-          - action: light.turn_on
+          - action: switch.turn_on
             target:
-              entity_id: light.voice_status
-            data:
-              brightness_pct: 35
-              rgb_color: [0, 120, 255]
+              entity_id: switch.g4_instant_status_light
     default:
-      - action: light.turn_off
+      - action: switch.turn_off
         target:
-          entity_id: light.voice_status
+          entity_id: switch.g4_instant_status_light
 ```
 
 These are the integration's `assist_satellite.started_listening` and
-`assist_satellite.idle` triggers, rather than fragile raw state matching.
+`assist_satellite.idle` triggers, rather than fragile raw state matching. The
+example `switch.g4_instant_status_light` entity is supplied by the UniFi
+Protect integration; your entity ID will reflect your camera's name.
 
 ## Verify microphone and speaker
 

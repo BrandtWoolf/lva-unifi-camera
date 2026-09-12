@@ -1,5 +1,5 @@
 name: UniFi Camera Voice Assistant
-version: "0.1.0"
+version: "0.1.1"
 slug: unifi_camera_voice
 description: Turn a UniFi Protect camera into a Home Assistant Assist satellite
 url: https://github.com/BrandtWoolf/lva-unifi-camera

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Clarify that the status-light automation uses the camera status-light switch
+  provided by the UniFi Protect integration.
+- Credit OHF-Voice/linux-voice-assistant as the project's upstream foundation.
+
 ## 0.1.0
 
 - Initial Home Assistant OS add-on.
