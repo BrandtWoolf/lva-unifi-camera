@@ -1,6 +1,8 @@
 # Local environment file (copy from .env.example and fill in your camera URL)
 .env
 ufp.json
+.env.tmp.*
+ufp.json.tmp.*
 
 # macOS
 .DS_Store

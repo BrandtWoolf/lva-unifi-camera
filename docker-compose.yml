@@ -69,6 +69,7 @@ services:
   speaker-bridge:
     profiles: ["speaker"]
     build: ./speaker-bridge
+    image: "lva-unifi-camera-speaker-bridge:local"
     container_name: lva-speaker-bridge
     restart: unless-stopped
     env_file: .env
@@ -80,6 +81,12 @@ services:
     depends_on:
       audio-bridge:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/talkback-ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 10s
 
 volumes:
   wakeword_data:
