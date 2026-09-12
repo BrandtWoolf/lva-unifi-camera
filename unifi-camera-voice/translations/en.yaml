@@ -1,0 +1,31 @@
+configuration:
+  rtsp_url:
+    name: Camera RTSP(S) URL
+    description: Complete RTSP or RTSPS stream URL copied from UniFi Protect.
+  protect_camera:
+    name: Protect camera name
+    description: Exact display name of the camera in UniFi Protect.
+  protect_controller:
+    name: Protect controller
+    description: Controller hostname or IP, with an optional HTTPS port.
+  protect_username:
+    name: Protect username
+    description: Dedicated local UniFi OS username with Protect Full Management.
+  protect_password:
+    name: Protect password
+    description: Password for the dedicated local UniFi OS account.
+  verify_tls:
+    name: Verify controller TLS
+    description: Verify the Protect controller certificate against trusted CAs.
+  client_name:
+    name: Assist satellite name
+    description: Device name advertised by Linux Voice Assistant.
+  mic_rate:
+    name: Microphone sample rate
+    description: Audio sample rate sent to Linux Voice Assistant. Keep 16000 unless required otherwise.
+  debug_logging:
+    name: Debug logging
+    description: Enable verbose Linux Voice Assistant diagnostics.
+network:
+  6053/tcp: ESPHome API
+  6055/tcp: Linux Voice Assistant peripheral API

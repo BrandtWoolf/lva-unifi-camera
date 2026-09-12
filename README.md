@@ -4,7 +4,50 @@ Turn a supported UniFi Protect camera into a full Home Assistant Assist
 satellite: camera microphone in, wake-word/Assist processing through Linux Voice
 Assistant (LVA), and spoken responses back through the camera speaker.
 
-## Quick start: one command
+## Home Assistant OS add-on
+
+The repository can be installed directly as a custom Home Assistant app
+(formerly called an add-on):
+
+1. In Home Assistant, go to **Settings > Apps > App store**.
+2. Open the repository menu, add
+   `https://github.com/BrandtWoolf/lva-unifi-camera`, and refresh the store.
+3. Install **UniFi Camera Voice Assistant**.
+4. Complete every required field on the **Configuration** tab.
+5. Start the app and review its log.
+6. Add the ESPHome integration using the Home Assistant host's LAN IP and port
+   `6053`.
+
+The add-on combines the microphone bridge, Linux Voice Assistant, and speaker
+bridge in one container because Home Assistant OS apps cannot run a Compose
+stack. LVA downloads and configuration persist in the app's private data
+directory and are included in Home Assistant backups.
+
+See the app's **Documentation** tab for the complete setup and credential
+requirements.
+
+### Test the add-on locally
+
+Run the isolated startup smoke test:
+
+```sh
+./test-addon.sh
+```
+
+To test with a real camera, copy and fill in the options template, then run:
+
+```sh
+cp unifi-camera-voice/options.example.json options.json
+chmod 600 options.json
+./test-addon.sh --run options.json
+```
+
+The real-camera test publishes ESPHome on host port `16053` and the peripheral
+API on `16055`, so it can run beside the standalone Compose stack. Override
+them with `ADDON_ESPHOME_PORT` and `ADDON_PERIPHERAL_PORT`. Test data is
+temporary and removed when the container stops.
+
+## Standalone Docker quick start
 
 ```sh
 git clone https://github.com/BrandtWoolf/lva-unifi-camera.git
@@ -63,13 +106,15 @@ tested.
 
 ## Prerequisites
 
+- For the add-on: Home Assistant OS with access to the custom app repository
 - Docker Desktop, or Docker Engine with the Compose v2 plugin
 - Home Assistant with an Assist voice pipeline and wake-word support configured
 - Network access from this host to the Protect controller/camera
 - Network access from Home Assistant to this host on TCP port `6053`
 
-`start.sh` stops with a specific error if Docker, `docker compose`, or the daemon
-is unavailable.
+The Docker requirements apply only to the standalone installation. `start.sh`
+stops with a specific error if Docker, `docker compose`, or the daemon is
+unavailable.
 
 ### Docker Desktop
 
@@ -363,6 +408,9 @@ better built-in echo handling.
 
 ## Repository components
 
+- `repository.yaml` - Home Assistant custom app repository metadata
+- `unifi-camera-voice/` - installable Home Assistant OS app
+- `test-addon.sh` - local image build, smoke test, and real-camera test runner
 - `start.sh` - safe first-run configuration, update/start, and health waiting
 - `docker-compose.yml` - LVA, bridge services, health checks, and named volumes
 - `audio-bridge/` - RTSP(S) to PulseAudio `camera_mic`
