@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3
+
+- Link to Home Assistant's local voice assistant setup guide and explain how to
+  create an assistant and assign it to the camera satellite.
+- Document how to finish configuring the ESPHome satellite when its initial
+  setup dialog keeps spinning.
+
 ## 0.1.2
 
 - Persist the ESPHome device MAC so Home Assistant reconnects after add-on

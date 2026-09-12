@@ -20,8 +20,8 @@ The repository can be installed directly as a custom Home Assistant app
 3. Install **UniFi Camera Voice Assistant**.
 4. Complete every required field on the **Configuration** tab.
 5. Start the app and review its log.
-6. Add the ESPHome integration using the Home Assistant host's LAN IP and port
-   `6053`.
+6. Create a Home Assistant voice assistant, then add the ESPHome integration
+   using the Home Assistant host's LAN IP and port `6053`.
 
 The add-on combines the microphone bridge, Linux Voice Assistant, and speaker
 bridge in one container because Home Assistant OS apps cannot run a Compose
@@ -181,11 +181,21 @@ Self-signed local controller certificates are supported by the default
 
 After `./start.sh` reports `Ready`:
 
-1. Go to **Settings > Devices & services > Add integration**.
-2. Select **ESPHome**.
-3. Enter the Docker host's LAN IP or hostname and port `6053`.
-4. Finish setup, then assign the desired Assist pipeline and wake word to the
-   new Assist satellite.
+1. Follow Home Assistant's
+   [local voice assistant guide](https://www.home-assistant.io/voice_control/voice_remote_local_assistant/)
+   to install local speech-to-text and text-to-speech services and create an
+   Assist voice assistant. In a typical local setup, Speech-to-Phrase or
+   Whisper handles speech-to-text and Piper handles text-to-speech.
+2. Go to **Settings > Devices & services > Add integration**.
+3. Select **ESPHome**.
+4. Enter the Docker host's LAN IP or hostname and port `6053`.
+5. Finish setup, then assign the voice assistant you created and the desired
+   wake word to the new Assist satellite.
+
+The voice assistant defines how Home Assistant processes requests and generates
+spoken responses; the satellite provides the camera microphone and speaker.
+Also [expose the entities you want to control to Assist](https://www.home-assistant.io/voice_control/voice_remote_expose_devices/)
+so voice commands can access them.
 
 The default device name is `unifi-camera-satellite`. Port `6055` exposes LVA's
 peripheral API; most Home Assistant setups only need `6053`.
@@ -340,6 +350,14 @@ data. `docker compose down` preserves all of these; `docker compose down -v`
 removes the named volumes but not `.env` or `ufp.json`.
 
 ## Troubleshooting
+
+### Initial ESPHome setup keeps spinning
+
+The initial ESPHome setup dialog can keep spinning even though Home Assistant
+has added the device successfully. Go to **Settings > Devices & services >
+ESPHome** and open the new satellite device. Confirm that its **Assistant** and
+**Wake word** settings are assigned correctly, then review the remaining device
+settings before testing a voice request.
 
 ### Wake word is never detected
 

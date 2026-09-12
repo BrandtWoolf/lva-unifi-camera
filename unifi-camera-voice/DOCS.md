@@ -53,14 +53,33 @@ the add-on does not cause a MAC-address mismatch in Home Assistant.
 
 After the add-on log reports that Linux Voice Assistant has started:
 
-1. Go to **Settings > Devices & services > Add integration**.
-2. Select **ESPHome**.
-3. Enter the Home Assistant host's LAN IP or hostname and port `6053`.
-4. Assign the desired Assist pipeline and wake word to the new satellite.
+1. Follow Home Assistant's
+   [local voice assistant guide](https://www.home-assistant.io/voice_control/voice_remote_local_assistant/)
+   to install local speech-to-text and text-to-speech services and create an
+   Assist voice assistant. In a typical local setup, Speech-to-Phrase or
+   Whisper handles speech-to-text and Piper handles text-to-speech.
+2. Go to **Settings > Devices & services > Add integration**.
+3. Select **ESPHome**.
+4. Enter the Home Assistant host's LAN IP or hostname and port `6053`.
+5. Finish setup, then assign the voice assistant you created and the desired
+   wake word to the new Assist satellite.
+
+The voice assistant defines how Home Assistant processes requests and generates
+spoken responses; the satellite provides the camera microphone and speaker.
+Also [expose the entities you want to control to Assist](https://www.home-assistant.io/voice_control/voice_remote_expose_devices/)
+so voice commands can access them.
 
 Port `6055` exposes LVA's peripheral API. Most installations only use `6053`.
 
 ## Troubleshooting
+
+### Initial ESPHome setup keeps spinning
+
+The initial ESPHome setup dialog can keep spinning even though Home Assistant
+has added the device successfully. Go to **Settings > Devices & services >
+ESPHome** and open the new satellite device. Confirm that its **Assistant** and
+**Wake word** settings are assigned correctly, then review the remaining device
+settings before testing a voice request.
 
 The log should show, in order:
 
