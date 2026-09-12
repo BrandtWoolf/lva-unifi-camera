@@ -9,3 +9,9 @@ This app is based on
 
 See the **Documentation** tab after installation for setup instructions and
 security requirements.
+
+## Known supported devices
+
+- UniFi Protect G4 Instant
+
+Other UniFi Protect cameras have not yet been verified.

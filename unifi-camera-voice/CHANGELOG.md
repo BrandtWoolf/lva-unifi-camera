@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2
+
+- Persist the ESPHome device MAC so Home Assistant reconnects after add-on
+  restarts and updates.
+- Document the UniFi Protect G4 Instant as the currently verified supported
+  camera.
+
 ## 0.1.1
 
 - Clarify that the status-light automation uses the camera status-light switch

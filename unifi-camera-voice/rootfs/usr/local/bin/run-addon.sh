@@ -67,6 +67,35 @@ mkdir -p \
     /data/lva/sounds-custom \
     /data/lva/wakewords-custom
 
+DEVICE_MAC_PATH=/data/lva/device-mac
+if [[ -e "$DEVICE_MAC_PATH" ]]; then
+    [[ -f "$DEVICE_MAC_PATH" && ! -L "$DEVICE_MAC_PATH" ]] ||
+        die "The persisted ESPHome device MAC is not a regular file."
+    LVA_MAC_ADDRESS="$(<"$DEVICE_MAC_PATH")"
+else
+    LVA_PYTHON=python3
+    if [[ -x /app/.venv/bin/python ]]; then
+        LVA_PYTHON=/app/.venv/bin/python
+    fi
+    LVA_MAC_ADDRESS="$(
+        "$LVA_PYTHON" - <<'PY'
+from getmac import get_mac_address
+from linux_voice_assistant.util import get_default_interface
+
+print(get_mac_address(interface=get_default_interface()) or "")
+PY
+    )"
+    [[ -n "$LVA_MAC_ADDRESS" ]] ||
+        die "Unable to detect a MAC address for the ESPHome device identity."
+    printf '%s\n' "$LVA_MAC_ADDRESS" >"$DEVICE_MAC_PATH"
+    chmod 600 "$DEVICE_MAC_PATH"
+fi
+
+[[ "$LVA_MAC_ADDRESS" =~ ^[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}$ ]] ||
+    die "The persisted ESPHome device MAC is invalid."
+export LVA_MAC_ADDRESS="${LVA_MAC_ADDRESS,,}"
+export PYTHONPATH="/opt/unifi-camera-voice/python${PYTHONPATH:+:$PYTHONPATH}"
+
 rm -rf \
     /app/configuration \
     /app/local \
