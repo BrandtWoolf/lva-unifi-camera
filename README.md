@@ -49,15 +49,33 @@ docker compose exec audio-bridge bash -c \
 ## 5. Connect to Home Assistant
 LVA speaks the ESPHome protocol. In Home Assistant:
 **Settings > Devices & services > Add integration > ESPHome**, host = this
-machine's IP, port `6053`. It should appear as an Assist satellite. (It may also
-be auto-discovered.)
+machine's IP, port `6053`. It should appear as an Assist satellite.
+
+## 6. Send responses to the camera speaker
+Camera talkback is not part of the RTSP stream. It uses an authenticated UniFi
+Protect WebSocket connection.
+
+1. Create a dedicated local-only account on the UniFi console with Protect
+   access to the camera and talkback.
+2. Copy `ufp.json.example` to `ufp.json` and enter that account's credentials.
+   This file is ignored by Git.
+3. Set `PROTECT_CAMERA` in `.env` to the camera's exact Protect display name.
+4. Start the optional speaker bridge:
+
+   ```sh
+   docker compose --profile speaker up -d --build
+   docker compose logs -f speaker-bridge
+   ```
+
+The bridge reads the camera's required talkback format from Protect, captures
+the `lva_out.monitor` PulseAudio source, encodes it as AAC/ADTS, and sends it to
+the camera speaker.
 
 ## Notes / next steps
-- **Speaker/talkback is not wired yet** — this covers the microphone only. Until
-  then, LVA's own sounds are sent to a discarded `lva_out` sink.
+- The talkback bridge keeps a live connection open so it can play responses
+  without clipping their beginning.
 - Latency: RTSP adds ~1–2 s; the low-delay flags in the bridge reduce it.
-- When we add the camera speaker, expect an **echo** issue (the camera mic hears
-  its own output) since there's no acoustic echo cancellation.
+- Expect some **echo** risk because the camera mic can hear its own speaker.
 
 ## Files
 - `docker-compose.yml` — audio-bridge + LVA services and a shared `pulse` volume.

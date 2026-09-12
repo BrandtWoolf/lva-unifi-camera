@@ -1,5 +1,6 @@
 # Local environment file (copy from .env.example and fill in your camera URL)
 .env
+ufp.json
 
 # macOS
 .DS_Store

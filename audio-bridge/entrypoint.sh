@@ -10,6 +10,10 @@ MIC_RATE="${MIC_RATE:-16000}"
 PULSE_DIR="${PULSE_DIR:-/run/pulse}"
 
 mkdir -p "$PULSE_DIR"
+rm -f \
+    "${PULSE_DIR}/native" \
+    "${PULSE_DIR}/camera_mic.fifo" \
+    "${PULSE_DIR}/pulse/pid"
 export XDG_RUNTIME_DIR="$PULSE_DIR"
 export HOME=/root
 
@@ -31,12 +35,16 @@ if ! pactl info >/dev/null 2>&1; then
     echo "[audio-bridge] ERROR: PulseAudio did not come up" >&2
     exit 1
 fi
+if ! pactl list sources short | awk '{print $2}' | grep -qx camera_mic; then
+    echo "[audio-bridge] ERROR: virtual mic 'camera_mic' was not created" >&2
+    exit 1
+fi
 echo "[audio-bridge] PulseAudio ready; virtual mic 'camera_mic' available."
 
 # Feed the pipe source from the camera. Reconnect forever if the stream drops.
 while true; do
     echo "[audio-bridge] connecting to ${RTSP_URL}"
-    ffmpeg -hide_banner -loglevel warning -nostdin \
+    ffmpeg -hide_banner -loglevel warning -nostdin -y \
         -rtsp_transport tcp -fflags nobuffer -flags low_delay \
         -i "${RTSP_URL}" \
         -vn -ac 1 -ar "${MIC_RATE}" -f s16le "${PULSE_DIR}/camera_mic.fifo" || true
