@@ -1,0 +1,38 @@
+name: UniFi Camera Voice Assistant
+version: "0.1.0"
+slug: unifi_camera_voice
+description: Turn a UniFi Protect camera into a Home Assistant Assist satellite
+url: https://github.com/BrandtWoolf/lva-unifi-camera
+stage: experimental
+arch:
+  - amd64
+  - aarch64
+init: false
+privileged:
+  - SYS_NICE
+ports:
+  "6053/tcp": 6053
+  "6055/tcp": 6055
+ports_description:
+  "6053/tcp": ESPHome API
+  "6055/tcp": Linux Voice Assistant peripheral API
+options:
+  rtsp_url: ""
+  protect_camera: ""
+  protect_controller: ""
+  protect_username: ""
+  protect_password: ""
+  verify_tls: false
+  client_name: unifi-camera-satellite
+  mic_rate: 16000
+  debug_logging: false
+schema:
+  rtsp_url: str
+  protect_camera: str
+  protect_controller: str
+  protect_username: str
+  protect_password: password
+  verify_tls: bool
+  client_name: str
+  mic_rate: int
+  debug_logging: bool

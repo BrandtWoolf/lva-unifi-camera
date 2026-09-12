@@ -1,0 +1,11 @@
+{
+  "rtsp_url": "rtsps://PROTECT_CONTROLLER:7441/STREAM_ID?enableSrtp",
+  "protect_camera": "Camera Name",
+  "protect_controller": "PROTECT_CONTROLLER",
+  "protect_username": "LOCAL_USERNAME",
+  "protect_password": "LOCAL_PASSWORD",
+  "verify_tls": false,
+  "client_name": "unifi-camera-satellite",
+  "mic_rate": 16000,
+  "debug_logging": false
+}
