@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { once } from "node:events";
 import { readFile, rm, writeFile } from "node:fs/promises";
 import { setTimeout as sleep } from "node:timers/promises";
 import { ProtectClient } from "unifi-protect";
@@ -98,11 +99,24 @@ while (!shutdown.signal.aborted) {
       throw new Error(`Camera "${camera.name}" does not report speaker support`);
     }
 
-    const { channels, samplingRate } = camera.config.talkbackSettings;
+    const { channels, samplingRate, typeFmt } =
+      camera.config.talkbackSettings;
+    const opus = typeFmt === "opus";
     console.log(
       `[speaker-bridge] connected to "${camera.name}"; ` +
-        `streaming ${samplingRate} Hz, ${channels} channel AAC`,
+        `streaming ${samplingRate} Hz, ${channels} channel ${opus ? "Opus" : "AAC"}`,
     );
+
+    // Opus cameras take RTP directly from the client on the URL that the
+    // talkback session returns, not through the talkback WebSocket.
+    const rtpUrl = opus
+      ? (
+          await client.transport.request(
+            `https://${controller}/proxy/protect/integration/v1/cameras/${camera.id}/talkback-session`,
+            { method: "POST", signal: shutdown.signal },
+          )
+        ).url
+      : null;
 
     parec = spawn(
       "parec",
@@ -135,10 +149,9 @@ while (!shutdown.signal.aborted) {
         "2",
         "-i",
         "pipe:0",
-        "-acodec",
-        "aac",
-        "-profile:a",
-        "aac_low",
+        ...(opus
+          ? ["-acodec", "libopus", "-application", "lowdelay"]
+          : ["-acodec", "aac", "-profile:a", "aac_low"]),
         "-avioflags",
         "direct",
         "-fflags",
@@ -151,20 +164,23 @@ while (!shutdown.signal.aborted) {
         String(channels),
         "-b:a",
         "64k",
-        "-f",
-        "adts",
-        "-muxdelay",
-        "0",
-        "pipe:1",
+        ...(opus
+          ? ["-f", "rtp", rtpUrl]
+          : ["-f", "adts", "-muxdelay", "0", "pipe:1"]),
       ],
       { stdio: ["pipe", "pipe", "inherit"] },
     );
 
     parec.stdout.pipe(ffmpeg.stdin);
 
-    await using session = await camera.talkback({ signal: shutdown.signal });
-    await writeFile(readinessPath, "");
-    await session.send(adtsFrames(ffmpeg.stdout), { signal: shutdown.signal });
+    if (opus) {
+      await writeFile(readinessPath, "");
+      await once(ffmpeg, "exit", { signal: shutdown.signal });
+    } else {
+      await using session = await camera.talkback({ signal: shutdown.signal });
+      await writeFile(readinessPath, "");
+      await session.send(adtsFrames(ffmpeg.stdout), { signal: shutdown.signal });
+    }
   } catch (error) {
     if (!shutdown.signal.aborted) {
       console.error(

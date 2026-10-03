@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4
+
+- Send talkback as Opus over RTP to cameras that report an Opus talkback
+  format. Protect switches a camera to Opus once a talkback session is opened
+  through its integration API, as Home Assistant's UniFi Protect speaker does,
+  and those cameras were silent because the bridge always sent AAC.
+
 ## 0.1.3
 
 - Link to Home Assistant's local voice assistant setup guide and explain how to
